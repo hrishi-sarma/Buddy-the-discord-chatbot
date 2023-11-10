@@ -4,12 +4,12 @@ import numpy as np
 from discord import player
 import datetime
 import pytz
-import openai
 import re
 import requests
 from bs4 import BeautifulSoup
 import pyjokes
 import wikipedia
+import json
 
 
 
@@ -51,6 +51,8 @@ def handle_response(message) -> str:
     name_keywords = ["what is your name", "who are you", "name"]
     joke_keywords = ["joke", "jokes", "meme", "laugh"]
     wiki_keywords = ["wiki on", "wikipedia on", "wiki start", "wikipedia start"]
+    flickrmy_keywords = ["my flickr"]
+    flickr_keywords = ["photos", "photo", "pic", "picture"]
     
   
     if p_message == "buddy start":
@@ -91,8 +93,16 @@ def handle_response(message) -> str:
     elif any(keyword in p_message for keyword in activity_keywords):
         return activity_response()
     elif any(keyword in p_message for keyword in help_keywords):
-        return "I can do the following: \n - Calculate (simple calculator) \n- Play a game \n- Respond to your texts \n- Tell the date and time \n- Carry out searches for you (kinda rusty) \n- Help AI conquer the world? (maybe)"
+        return "I can do the following: \n - Calculate (simple calculator) \n- Play a game \n- Respond to your texts \n- Tell the date and time \n- Carry out searches for you (kinda rusty) `command : wiki/wikipedia on/start` \n- Tell you a programming joke \n- Import a random pic from flickr \n- Help AI conquer the world? (maybe)"
 
+
+    elif any(keyword in p_message for keyword in flickrmy_keywords):
+        return flickrmy_response()
+
+    elif any(keyword in p_message for keyword in flickr_keywords):
+        return flickr_response()
+
+  
     elif any(keyword in p_message for keyword in time_keywords):
         ist_timezone = pytz.timezone('Asia/Kolkata')
         current_time = datetime.datetime.now(ist_timezone)
@@ -343,4 +353,38 @@ def wiki_response(search):
     finally:
         global wiking
         wiking = False
-      
+
+def flickrmy_response():
+  try:
+      flickr_api_key = '9f8aadba894e1a397e1eba8cd265f5dd'
+      flickr_user_id = 'CyaINhxLL' 
+      flickr_api_url = f'https://api.flickr.com/services/rest/?method=flickr.people.getPhotos&api_key={flickr_api_key}&user_id={flickr_user_id}&format=json&nojsoncallback=1'
+
+      response = requests.get(flickr_api_url)
+      data = json.loads(response.text)
+      photos = data['photos']['photo']
+      random_photo = random.choice(photos)
+
+      photo_url = f'https://farm{random_photo["farm"]}.staticflickr.com/{random_photo["server"]}/{random_photo["id"]}_{random_photo["secret"]}.jpg'
+
+      return f'Random Flickr Picture: {photo_url}'
+  except Exception as e:
+      print(f'Error fetching random picture from Flickr: {str(e)}')
+      return 'An error occurred while fetching the picture.'
+def flickr_response():
+    try:
+        flickr_api_key = '9f8aadba894e1a397e1eba8cd265f5dd'       
+        flickr_api_url = f'https://api.flickr.com/services/rest/?method=flickr.interestingness.getList&api_key={flickr_api_key}&format=json&nojsoncallback=1'
+
+        response = requests.get(flickr_api_url)
+        data = json.loads(response.text)
+
+        photos = data['photos']['photo']
+        random_photo = random.choice(photos)
+
+        photo_url = f'https://farm{random_photo["farm"]}.staticflickr.com/{random_photo["server"]}/{random_photo["id"]}_{random_photo["secret"]}.jpg'
+
+        return f'Random Flickr Picture: {photo_url}'
+    except Exception as e:
+        print(f'Error fetching random picture from Flickr: {str(e)}')
+        return 'An error occurred while fetching the picture.'
