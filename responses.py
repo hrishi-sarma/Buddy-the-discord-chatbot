@@ -11,6 +11,7 @@ import pyjokes
 import wikipedia
 import json
 
+chat_history = []
 
 
 num1 = None
@@ -24,10 +25,13 @@ player_choice = None
 computer_choice = None
 wiking = False
 
+
 def handle_response(message) -> str:
-    global num1, num2, operation, calculating, speaking, gaming, computer_choice, num_to_guess, player_choice, search, wiking
-  
+    global num1, num2, operation, calculating, speaking, gaming, computer_choice, num_to_guess, player_choice, search, wiking, chat_history, num_guess
+
+   
     p_message = message.lower()
+    
 
   
     greet_commands = ["hello", "hi", "hey", "hoi", "hai", "greetings", "namaste", "yo", "heyy"]
@@ -119,7 +123,12 @@ def handle_response(message) -> str:
         return wiki_response(search)
     
 
-    
+    if speaking :
+        chat_history.append(p_message)
+    if p_message == "history":
+        return "\n".join(chat_history) if chat_history else "No chat history available."
+        
+  
 
     elif any(keyword in p_message for keyword in name_keywords):
         return name_response()
@@ -149,13 +158,15 @@ def handle_response(message) -> str:
       
         elif p_message == "gn":
           num_to_guess = random.randint(1,100)
+          num_guess = 0
           return "Let's play a game! I'm thinking of a number between 1 and 100. Try to guess it." 
         if gaming:
           try:
             guess = int(p_message)
+            num_guess += 1
             if guess == num_to_guess:
                 gaming = False
-                return "Congratulations! You guessed the number."
+                return f"Congratulations! You guessed the number in : {num_guess} attempts"
             elif guess < num_to_guess:
                 return "Try a higher number."
             else:
